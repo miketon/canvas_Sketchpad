@@ -1,0 +1,107 @@
+<html>
+  <head>
+    <title>Mike Hackim Sketch Pad</title>
+    <style type="text/css">
+      #body{
+        text-align: center;
+      }  
+    </style>
+    <script type='text/javascript'>
+window.onload = function(){
+
+  $  = function(id)  { return document.getElementById(id)};
+  var dc = function(tag) { return document.createElement(tag)};
+
+  // Draw Obj
+  var POINTS = [];
+      POINTS.push(new Point(0, 0));
+  var canvas;
+  var ctx;
+
+  // Mouse Properties
+  var mouseX; 
+  var mouseY;
+  var mouseDwn = false;
+
+  // Init Canvas
+  canvas = $('canvas');
+  if(canvas && canvas.getContext){
+    ctx = canvas.getContext('2d');
+    ctx.fillStyle='rgba(0, 0, 255, 1.0)';
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+    document.addEventListener('mousemove' , docMouseMov , false);
+    document.addEventListener('mousedown' , docMouseDwn , false);
+    document.addEventListener('mouseup'   , docMouseRel , false);
+  }
+
+  function Point(x, y){
+    this.pos   = {x:x, y:y};
+    this.size  = 3.0;
+    this.alpha = 1.0;
+  }
+  Point.prototype.draw          = function(ctx){
+    var brushColor = 'rgba(255, 0, 0, 1)';
+    var brushSize = 15;
+    var cOffSet = brushSize*0.5 + 5;
+    ctx.fillStyle = brushColor;
+    ctx.fillRect(this.pos.x-cOffSet, this.pos.y-cOffSet, brushSize, brushSize); 
+  };
+  Point.prototype.distanceTo    = function(){};
+  Point.prototype.clonePosition = function(){};
+
+  function docMouseMov(e){
+    if(mouseDwn==true){
+    mouseX = e.clientX - canvas.offsetLeft; //delta from x.offsetParent (body)
+    mouseY = e.clientY - canvas.offsetTop;  //alt = e.offsetX (will tile?)
+      var len = POINTS.length-1;
+      POINTS.push(new Point(mouseX, mouseY));
+      POINTS[len].draw(ctx);
+    }
+  }
+
+  function docMouseDwn(e){
+    mouseDwn = true;
+  }
+
+  function docMouseRel(e){
+    mouseDwn = false;
+  }
+
+  function update(){
+    console.log('Updating: '+mouseX+' : '+mouseY);
+  }
+
+  (function(){
+    //setInterval(update, 1000/FRAMERATE);
+   })();
+
+aSounds = [
+  // very small, very simple mario theme. Sequenced by Mike Martel.
+  "data:audio/mid;base64,TVRoZAAAAAYAAQAEAMBNVH...",
+  // game over. Sequenced by John N. Engelmann.
+  "data:audio/mid;base64,TVRoZAAAAAYAAQADAHhNVH..."
+]
+
+playMusic = function(iSoundID, bLoop) {
+  if (!bMusic) return;
+  var oEmbed = $("embed");
+  oEmbed.src = aSounds[iSoundID];
+  oEmbed.id = "sound_" + iSoundID;
+  if (bLoop) oEmbed.setAttribute("loop", "true");
+  oEmbed.setAttribute("autostart", "true");
+  oEmbed.style.position = "absolute";
+  oEmbed.style.left = -1000;
+  //appChild(document.body, oEmbed);
+}
+
+var bMusic = true;
+//playMusic(1, true);
+
+}
+    </script>
+  </head>
+  <body id='body' bgcolor="#AAAADD">
+    <canvas bgcolor="#889988" id='canvas'  width=320 height=240></canvas>
+    <embed id='embed' width=32 height=32></embed>
+  </body>
+</html>

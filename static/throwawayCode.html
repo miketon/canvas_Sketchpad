@@ -1,0 +1,92 @@
+<html lang="en">
+	 <head>
+		<title>HTML5 Canvas ScratchPad</title>
+		<style type="text/css">div.centeredDiv { text-align: center; }</style>
+	 </head>
+	 <body>
+	 	<a href="#" title="click me" id="clickLink">Click Me Event!</a>
+	 	<p>
+	 		<input id = "Checkbox1" type = "checkbox"/>Enable click event</input>
+	 	</p>
+	 	<div class="centeredDiv">
+			<canvas id="canvas" width="640" height="480" style="border: 1px solid #aaa;" moz-opaque="true">
+	 			<p>This demo requires a web browser which supports HTML5 canvas.</p>
+			</canvas>
+		</div>
+	 </body>
+	 <script type="text/javascript" >
+	 			//draw code
+	 		var __MAIN = null;
+	 		
+			function init(){
+				console.log("Program 42init");
+				__MAIN = this;
+			   	this.canvas 	= document.getElementById('canvas');
+			   	this.context2D 	= canvas.getContext('2d');
+			   		//create and draw to backbuffer
+			   	this.backBuffer = document.createElement('canvas');
+	            this.backBuffer.width = this.canvas.width;
+	            this.backBuffer.height = this.canvas.height;
+	            this.backBufferContext2D = this.backBuffer.getContext('2d');
+			   	
+			   	for(i = 0; i < 20; i++){
+			   		this.drawCircle(this.backBufferContext2D);
+			   	}
+			   	
+			   		//copy the back buffer to the displayed canvas
+        		this.context2D.drawImage(this.backBuffer, 0, 0);
+			}
+			
+			this.drawCircle = function(ctx){
+				var randX = Math.floor(Math.random()*640);
+				var randY = Math.floor(Math.random()*480);
+				var randZ = Math.floor(Math.random()*64);
+					ctx.strokeStyle = "#000000";
+					ctx.fillStyle = "#FF0000";
+				ctx.beginPath();
+					ctx.arc(randX, randY, randZ, 0, Math.PI * 2, true);
+				ctx.closePath();
+					ctx.stroke();
+					ctx.fill();
+			}
+			
+			//init();
+	 </script>
+	 <script type="text/javascript" >
+	 		//event code
+	 		function addEventHandler(oNode, sEvt, fFunc, bCaptures){
+	 			//if(typeof(window.event) == "undefined")
+	 				//oNode.addEventListener(sEvt, fFunc, bCaptures);	//DOM 2 browser
+	 				oNode.onclick = fFunc;						//Netscape model, simply works everywhere
+	 			//else
+	 				//oNode.attachEvent("on" + sEvt, fFunc);		//IE
+	 		}
+	 		function removeEventHandler(oNode, sEvt, fFunc, bCaptures){
+	 			//if(typeof(window.event) == "undefined")
+	 				//oNode.removeEventListener(sEvt, fFunc, bCaptures);	//DOM 2 browser
+	 				oNode.onclick = null;
+	 			//else
+	 				//oNode.detachEvent("on" + sEvt, fFunc);		//IE
+	 		}
+	 		function onLinkClicked(e){
+	 			alert("You clicked the Link");
+	 		}
+	 		function getEventTarget(e){
+	 			if (window.event != null) return window.event.srcElement;
+	 			else return e.target;
+	 		}
+	 		function onEnableClick(e){
+	 			var target = getEventTarget(e);
+	 			if (target.checked)
+	 				addEventHandler(document.getElementById('clickLink'), "click", onLinkClicked, false);
+	 			else
+	 				removeEventHandler(document.getElementById('clickLink'), "click", onLinkClicked, false);
+	 		}
+	 		function setupClickHandler(){
+	 			addEventHandler(document.getElementById("Checkbox1"), "click", onEnableClick, false);
+	 		}
+	 		addEventHandler(window, "load", setupClickHandler, false);
+	 		
+	 </script>
+	 <script type="text/javascript" src="throwawayCode.js"></script>
+</html>

@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <title>Prototype</title>
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+    <script type="text/javascript" src="/games/jsplatformer1.js"></script>
+  </head>
+  <body>
+    {% for greeting in greetings %}
+      {% if greeting.author %}
+        <b>{{ greeting.author.nickname }}</b> wrote:
+      {% else %}
+       An anonymous person wrote:
+      {% endif %}
+      <blockquote>{{ greeting.content|escape }}</blockquote>
+    {% endfor %}
+
+    <form action="/sign" method="post">
+      <div><textarea name="content" rows="3" cols="60"></textarea></div>
+      <div><input type="submit" value="Sign Guestbook"></div>
+    </form>
+
+    <a href="{{ url }}">{{ url_linktext }}</a>
+    
+    <a href="http://www.brighthub.com/internet/web-development/articles/38364.aspx">
+	   Game Development with Javascript and the Canvas element
+	</a>
+    
+    <br />
+    <canvas id="canvas" width="600" height="400">
+	   <p>Your browser does not support the canvas element.</p>
+    </canvas>
+
+  </body>
+</html>
