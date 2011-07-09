@@ -1,0 +1,72 @@
+<html>
+  <head>
+  <script type="text/javascript">
+
+    $             = function(id)  { return document.getElementById(id)};
+    var dc        = function(tag) { return document.createElement(tag)};
+    var canvas    = dc('canvas');
+
+    var mouseX = 0;
+    var mouseY = 0;
+    canvas.width  = 320;
+    canvas.height = 240;
+    canvas.id     = 'mtSurface';
+    canvas.onmousemove = function() { mousePos(event)  };  //why does event keyword matter???
+    
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle='rgba(0, 0, 255, 1.0)';
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+
+    function mousePos(e){
+      mouseX = e.x - e.srcElement.offsetLeft;
+      mouseY = e.y - e.srcElement.offsetTop;
+      console.log(mouseX +' : '+mouseY);  
+    }
+
+    function iamlive(){
+      alert('I is alive and well');
+    }
+
+    function PrefixInteger(num, length) {
+      return (num / Math.pow(10, length)).toFixed(length).substr(2);
+    }
+
+    var audioChords = [];
+        audioChords.push(new Audio('file:///Users/mton/Dropbox/Code/mtonCode/AppEngine/mton_prototype_canvas/static/sound/theforce.mp3'));
+        audioChords.push(new Audio('file:///Users/mton/Dropbox/Code/mtonCode/AppEngine/mton_prototype_canvas/static/sound/One_Sly_Move.mp3'));
+        audioChords.push(new Audio('file:///Users/mton/Dropbox/Code/mtonCode/AppEngine/mton_prototype_canvas/static/sound/NightAmbienceSimple_01.wav'));
+        audioChords.push(new Audio('file:///Users/mton/Dropbox/Code/mtonCode/AppEngine/mton_prototype_canvas/static/sound/NightAmbientCreatureOneShot_01.wav'));
+        audioChords.push(new Audio('file:///Users/mton/Dropbox/Code/mtonCode/AppEngine/mton_prototype_canvas/static/sound/AfternoonAmbientBirdOneShot_09.wav'));
+
+    function audioPlay(audioObj){
+        audioObj.currentTime = 0;
+        audioObj.play();
+        //audioObj.volume = 0.5;
+    }
+    
+    window.onload = function(){
+      document.body.appendChild(canvas);
+      for(var i = 0; i < audioChords.length; i++){
+        var brObj  = dc('br');
+        var iCount = PrefixInteger(i,2);
+        document.body.appendChild(brObj);
+        var audioObj       = dc('audio');
+          audioObj.id      = 'audio'+iCount;
+          audioObj.src     = audioChords[i].src;
+          audioObj.preload = 'true';
+          document.body.appendChild(audioObj);
+        var audioTag         = dc('a');
+          audioTag.innerHTML = 'audioSample' + iCount; 
+          audioTag.href      = 'javascript:audioPlay(audioChords['+i+']);'
+          document.body.appendChild(audioTag);
+      }
+    }
+  </script>
+  </head>
+  <body id='body' bgcolor="#AAAADD">
+    <a id='boogers' href="javascript:iamlive();">Am I alive???</a><br>
+    <a href="javascript:iamlive();">Am I alive???</a><br>
+  </body>
+</html>
+
+
