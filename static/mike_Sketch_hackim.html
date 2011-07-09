@@ -75,33 +75,33 @@ window.onload = function(){
     //setInterval(update, 1000/FRAMERATE);
    })();
 
-aSounds = [
-  // very small, very simple mario theme. Sequenced by Mike Martel.
-  "data:audio/mid;base64,TVRoZAAAAAYAAQAEAMBNVH...",
-  // game over. Sequenced by John N. Engelmann.
-  "data:audio/mid;base64,TVRoZAAAAAYAAQADAHhNVH..."
-]
+  aSounds = [
+    // very small, very simple mario theme. Sequenced by Mike Martel.
+    "data:audio/mid;base64,TVRoZAAAAAYAAQAEAMBNVH...",
+    // game over. Sequenced by John N. Engelmann.
+    "data:audio/mid;base64,TVRoZAAAAAYAAQADAHhNVH..."
+  ]
 
-playMusic = function(iSoundID, bLoop) {
-  if (!bMusic) return;
-  var oEmbed = $("embed");
-  oEmbed.src = aSounds[iSoundID];
-  oEmbed.id = "sound_" + iSoundID;
-  if (bLoop) oEmbed.setAttribute("loop", "true");
-  oEmbed.setAttribute("autostart", "true");
-  oEmbed.style.position = "absolute";
-  oEmbed.style.left = -1000;
-  //appChild(document.body, oEmbed);
-}
+  playMusic = function(iSoundID, bLoop) {
+    if (!bMusic) return;
+    var oEmbed = dc("embed");
+    oEmbed.src = aSounds[iSoundID];
+    oEmbed.id  = "sound_" + iSoundID;
+    if (bLoop) oEmbed.setAttribute("loop", "true");
+    oEmbed.setAttribute("autostart", "true");
+    oEmbed.style.position = "absolute";
+    oEmbed.style.left = -1000;
+    //appChild(document.body, oEmbed);
+    document.body.appendChild(oEmbed);
+  }
 
-var bMusic = true;
-//playMusic(1, true);
+  var bMusic = true;
+  playMusic(1, true);
 
 }
     </script>
   </head>
   <body id='body' bgcolor="#AAAADD">
     <canvas bgcolor="#889988" id='canvas'  width=320 height=240></canvas>
-    <embed id='embed' width=32 height=32></embed>
   </body>
 </html>
