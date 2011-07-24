@@ -1,0 +1,115 @@
+<html>
+  <head>
+    <title>Drag n Drop</title>
+    <script>
+window.onload = function(){
+   
+  $                 = function(id)  { return document.getElementById(id)};
+  var dc            = function(tag) { return document.createElement(tag)};
+
+  var canvas        = dc('canvas');
+      canvas.id     = 'canvasMT';
+  var CANVAS_W      = 320;
+  var CANVAS_H      = 200;
+      canvas.width  = CANVAS_W;
+      canvas.height = CANVAS_H;
+  var CONTEXT       = canvas.getContext('2d');
+  document.body.appendChild(canvas);
+
+  var CANVAS_X = canvas.offsetLeft; //delta from x.offsetParent (body)
+  var CANVAS_Y = canvas.offsetTop;  //alt = e.offsetX (will tile?)
+
+  var MOUSE_X   = 0;
+  var MOUSE_Y   = 0;
+  var MOUSE_DWN = false;
+
+  var cDRAG     = 3;  //num of draggable objects
+  var oDRAG     = [];
+
+  function documentMouseMoveHandler(event) {
+    MOUSE_X = event.clientX - CANVAS_X; 
+    MOUSE_Y = event.clientY - CANVAS_Y;
+  }
+
+  function documentMouseDownHandler(event) {
+    MOUSE_DWN = true;
+    for(var i =0; i < oDRAG.length; i++){
+      if( distanceBetween( oDRAG[i].pos, { x: MOUSE_X, y: MOUSE_Y } ) < oDRAG[i].size * 1.5) {
+        oDRAG[i].dragging = true;
+        oDRAG[i].color    = 'rgba(255,255,222,1.0)';
+        break;
+      }
+    }
+  }
+  
+  function documentMouseUpHandler(event) {
+    MOUSE_DWN = false;
+    for(var i =0; i < oDRAG.length; i++){
+      oDRAG[i].dragging = false;
+      oDRAG[i].color    = 'rgba(222,222,222,1.0)';
+    }
+  }
+
+  function Circle() {
+    this.pos         = { x: 0, y: 0 };
+    this.size        = 10;
+    this.color       = 'rgba(222,222,222,1.0)';
+    this.dragging    = false;
+  }
+
+  (function(){ 
+      // Register event listeners
+    document.addEventListener('mousemove' , documentMouseMoveHandler , false ) ;
+    document.addEventListener('mousedown' , documentMouseDownHandler , false ) ;
+    document.addEventListener('mouseup'   , documentMouseUpHandler   , false ) ;
+      // Init objects
+    var canvasWD       = CANVAS_W * 0.5;
+    var canvasHT       = CANVAS_H * 0.5;
+    for(var i=0; i<cDRAG; i++){
+      var circle       = new Circle();
+          circle.pos.x = canvasWD*(Math.random()-0.5)*0.85 + canvasWD;
+          circle.pos.y = canvasHT*(Math.random()-0.5)*0.85 + canvasHT;
+          circle.size  = Math.random()*25;
+      oDRAG.push(circle);
+    }
+    setInterval(update, 20);
+
+  })();
+
+  function update(){
+      //clear canvas
+    CONTEXT.fillStyle = 'rgba(122,122,122,1.0)';
+    CONTEXT.fillRect(0, 0, CANVAS_W, CANVAS_H);
+      //position and draw objects
+    for(var i =0; i < oDRAG.length; i++){
+      if( oDRAG[i].dragging ) {
+        oDRAG[i].pos.x += ( MOUSE_X - oDRAG[i].pos.x ) * 0.2;
+        oDRAG[i].pos.y += ( MOUSE_Y - oDRAG[i].pos.y ) * 0.2;
+          //prevent out of bounds
+        oDRAG[i].pos.x = Math.max( Math.min( oDRAG[i].pos.x, CANVAS_W), 0 );
+        oDRAG[i].pos.y = Math.max( Math.min( oDRAG[i].pos.y, CANVAS_H), 0 );
+      }
+      drawCircle(oDRAG[i].pos, oDRAG[i].size, oDRAG[i].color); 
+    }
+  } 
+
+  function drawCircle(pos, size, color){
+      CONTEXT.beginPath();
+      CONTEXT.fillStyle = color;
+      CONTEXT.arc(pos.x, pos.y, size, 0, Math.PI*2, true);
+      CONTEXT.fill();
+  }
+
+  function distanceBetween(p1,p2) {
+    var dx = p2.x-p1.x;
+    var dy = p2.y-p1.y;
+    return Math.sqrt(dx*dx + dy*dy);
+  }
+
+}
+ </script>
+  </head>
+  <body id='body' bgcolor="#AAAAAA" align='center'>
+  </body>
+</html>
+
