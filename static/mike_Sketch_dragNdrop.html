@@ -13,7 +13,7 @@ window.onload = function(){
   var CANVAS_H      = 200;
       canvas.width  = CANVAS_W;
       canvas.height = CANVAS_H;
-  var CONTEXT       = canvas.getContext('2d');
+  var CTX       = canvas.getContext('2d');
   document.body.appendChild(canvas);
 
   var CANVAS_X = canvas.offsetLeft; //delta from x.offsetParent (body)
@@ -32,6 +32,7 @@ window.onload = function(){
   }
 
   function documentMouseDownHandler(event) {
+    document.body.style.cursor = 'pointer';
     MOUSE_DWN = true;
     for(var i =0; i < oDRAG.length; i++){
       if( distanceBetween( oDRAG[i].pos, { x: MOUSE_X, y: MOUSE_Y } ) < oDRAG[i].size * 1.5) {
@@ -43,6 +44,7 @@ window.onload = function(){
   }
   
   function documentMouseUpHandler(event) {
+    document.body.style.cursor = 'default';
     MOUSE_DWN = false;
     for(var i =0; i < oDRAG.length; i++){
       oDRAG[i].dragging = false;
@@ -78,8 +80,8 @@ window.onload = function(){
 
   function update(){
       //clear canvas
-    CONTEXT.fillStyle = 'rgba(122,122,122,1.0)';
-    CONTEXT.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    CTX.fillStyle = 'rgba(122,122,122,1.0)';
+    CTX.fillRect(0, 0, CANVAS_W, CANVAS_H);
       //position and draw objects
     for(var i =0; i < oDRAG.length; i++){
       if( oDRAG[i].dragging ) {
@@ -91,13 +93,36 @@ window.onload = function(){
       }
       drawCircle(oDRAG[i].pos, oDRAG[i].size, oDRAG[i].color); 
     }
+
+    var pos   = { x: 0, y: 0 };
+    pos.x     = CANVAS_W * 0.5;
+    pos.y     = CANVAS_H * 0.5;
+    var color = '#F00';
+    drawRect(pos, color);
   } 
 
   function drawCircle(pos, size, color){
-      CONTEXT.beginPath();
-      CONTEXT.fillStyle = color;
-      CONTEXT.arc(pos.x, pos.y, size, 0, Math.PI*2, true);
-      CONTEXT.fill();
+    CTX.beginPath();
+    CTX.fillStyle = color;
+    CTX.arc(pos.x, pos.y, size, 0, Math.PI*2, true);
+    CTX.fill();
+  }
+
+  function drawRect(pos, color){
+    CTX.save();
+    //CTX.setTransform(1,0,0,1,pos.x,pos.y); 
+    if(MOUSE_DWN == true){
+      CTX.fillStyle = color;
+      var dx = MOUSE_X/CANVAS_W * 9;
+      var dy = MOUSE_Y/CANVAS_H * 9;
+      // translation matrix:
+      //  1  0  tx              
+      //  0  1  ty
+      //  0  0  1 
+      CTX.setTransform(Math.cos(dx), -Math.sin(dy), Math.sin(dx), Math.cos(dy), pos.x, pos.y); 
+    }
+    CTX.fillRect(0,-7.5, 100, 15);
+    CTX.restore();
   }
 
   function distanceBetween(p1,p2) {

@@ -1,0 +1,26 @@
+<html>
+  <head>
+    <title>I am blank</title>
+    <script>
+      window.onload = function(){
+        $  = function(id)  { return document.getElementById(id); };
+        dc = function(tag) { return document.createElement(tag); };
+        var canvasmt = dc('canvas');
+        document.body.appendChild(canvasmt);
+        canvasmt.id = 'tohell';
+        canvasmt.width = 320;
+        canvasmt.height = 200;
+
+        c = canvasmt.getContext('2d');
+        c.width = 320;
+        c.height = 200;
+        c.id = 'mikeCanvas';
+        c.fillStyle = '#00F';
+        c.fillRect(0,0,320,200);
+        c.save();
+      } 
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
