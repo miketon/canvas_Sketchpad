@@ -28,6 +28,7 @@ window.onload = function(){
 
   function documentMouseMoveHandler(event) {
     MOUSE_X = event.clientX - CANVAS_X; 
+
     MOUSE_Y = event.clientY - CANVAS_Y;
   }
 
@@ -113,13 +114,22 @@ window.onload = function(){
     //CTX.setTransform(1,0,0,1,pos.x,pos.y); 
     if(MOUSE_DWN == true){
       CTX.fillStyle = color;
-      var dx = MOUSE_X/CANVAS_W * 9;
-      var dy = MOUSE_Y/CANVAS_H * 9;
+      var dx = MOUSE_X - ( CANVAS_W * 0.5);
+      var dy = MOUSE_Y - ( CANVAS_H * 0.5);
+      var angle = Math.atan2(dy, dx);
       // translation matrix:
       //  1  0  tx              
       //  0  1  ty
       //  0  0  1 
-      CTX.setTransform(Math.cos(dx), -Math.sin(dy), Math.sin(dx), Math.cos(dy), pos.x, pos.y); 
+      CTX.setTransform(Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), pos.x, pos.y); 
+      CTX.save();
+      var mpos = {x:0, y:0};
+      mpos.x = (CANVAS_W * 0.5)+Math.cos(angle)*100;
+      mpos.y = (CANVAS_H * 0.5)+Math.sin(angle)*100;
+      CTX.setTransform(1,0,0,1,0,0);
+      CTX.fillStyle ='#0F0';
+      drawCircle(mpos,15,'#00F');
+      CTX.restore();
     }
     CTX.fillRect(0,-7.5, 100, 15);
     CTX.restore();
