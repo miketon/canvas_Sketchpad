@@ -10,7 +10,7 @@ window.onload = function(){
   var canvas        = dc('canvas');
       canvas.id     = 'canvasMT';
   var CANVAS_W      = 320;
-  var CANVAS_H      = 200;
+  var CANVAS_H      = 240;
       canvas.width  = CANVAS_W;
       canvas.height = CANVAS_H;
   var CTX       = canvas.getContext('2d');
@@ -28,7 +28,6 @@ window.onload = function(){
 
   function documentMouseMoveHandler(event) {
     MOUSE_X = event.clientX - CANVAS_X; 
-
     MOUSE_Y = event.clientY - CANVAS_Y;
   }
 
@@ -36,7 +35,7 @@ window.onload = function(){
     document.body.style.cursor = 'pointer';
     MOUSE_DWN = true;
     for(var i =0; i < oDRAG.length; i++){
-      if( distanceBetween( oDRAG[i].pos, { x: MOUSE_X, y: MOUSE_Y } ) < oDRAG[i].size * 1.5) {
+      if( distanceBetween( oDRAG[i].pos, { x: MOUSE_X, y: MOUSE_Y } ) < oDRAG[i].radius * 1.5) {
         oDRAG[i].dragging = true;
         oDRAG[i].color    = 'rgba(255,255,222,1.0)';
         break;
@@ -55,9 +54,16 @@ window.onload = function(){
 
   function Circle() {
     this.pos         = { x: 0, y: 0 };
-    this.size        = 10;
+    this.radius        = 10;
     this.color       = 'rgba(222,222,222,1.0)';
     this.dragging    = false;
+  }
+
+  function Segment(){
+    this.pos    = { x: 0, y: 0 };
+    this.radius = 20;
+    this.length = 70;
+    this.color  = 'rgba(222,222,222,1.0)';
   }
 
   (function(){ 
@@ -69,14 +75,15 @@ window.onload = function(){
     var canvasWD       = CANVAS_W * 0.5;
     var canvasHT       = CANVAS_H * 0.5;
     for(var i=0; i<cDRAG; i++){
-      var circle       = new Circle();
-          circle.pos.x = canvasWD*(Math.random()-0.5)*0.85 + canvasWD;
-          circle.pos.y = canvasHT*(Math.random()-0.5)*0.85 + canvasHT;
-          circle.size  = Math.random()*25;
+      var circle        = new Circle();
+      var angle_r       = Math.random() * (Math.PI * 2.0);
+      var radius_r      = Math.random() * Math.min(canvasWD, canvasHT)*Math.min(1.0, 0.15*cDRAG);
+          circle.pos.x  = Math.cos(angle_r) * radius_r + canvasWD;
+          circle.pos.y  = Math.sin(angle_r) * radius_r + canvasHT;
+          circle.radius = Math.max(Math.random(), 1.0/cDRAG)*25;
       oDRAG.push(circle);
     }
     setInterval(update, 20);
-
   })();
 
   function update(){
@@ -92,21 +99,30 @@ window.onload = function(){
         oDRAG[i].pos.x = Math.max( Math.min( oDRAG[i].pos.x, CANVAS_W), 0 );
         oDRAG[i].pos.y = Math.max( Math.min( oDRAG[i].pos.y, CANVAS_H), 0 );
       }
-      drawCircle(oDRAG[i].pos, oDRAG[i].size, oDRAG[i].color); 
+      drawCircle(oDRAG[i]); 
     }
 
     var pos   = { x: 0, y: 0 };
     pos.x     = CANVAS_W * 0.5;
     pos.y     = CANVAS_H * 0.5;
-    var color = '#F00';
-    drawRect(pos, color);
+    drawRect(pos, '#F00');
   } 
 
-  function drawCircle(pos, size, color){
+  function drawCircle(c){
     CTX.beginPath();
-    CTX.fillStyle = color;
-    CTX.arc(pos.x, pos.y, size, 0, Math.PI*2, true);
+    CTX.fillStyle = c.color;
+    CTX.arc(c.pos.x, c.pos.y, c.radius, 0, Math.PI*2, true);
     CTX.fill();
+  }
+
+  function drawSegment(s){
+    CTX.fillStyle = s.color;
+    CTX.fillRect(0,-(s.radius * 0.5), s.length, s.radius);
+    var circle   = new Circle();
+    circle.radius= s.radius * 0.3;
+    drawCircle(circle);
+    circle.pos.x = s.length - circle.radius;
+    drawCircle(circle);
   }
 
   function drawRect(pos, color){
@@ -123,15 +139,14 @@ window.onload = function(){
       //  0  0  1 
       CTX.setTransform(Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), pos.x, pos.y); 
       CTX.save();
-      var mpos = {x:0, y:0};
-      mpos.x = (CANVAS_W * 0.5)+Math.cos(angle)*100;
-      mpos.y = (CANVAS_H * 0.5)+Math.sin(angle)*100;
-      CTX.setTransform(1,0,0,1,0,0);
-      CTX.fillStyle ='#0F0';
-      drawCircle(mpos,15,'#00F');
+      //circle.pos.x = (CANVAS_W * 0.5)+Math.cos(angle)*100;
+      //circle.pos.y = (CANVAS_H * 0.5)+Math.sin(angle)*100;
+      //CTX.setTransform(1,0,0,1,0,0);
+      var segment = new Segment();
+      segment.color = '#F00';
+      drawSegment(segment);
       CTX.restore();
     }
-    CTX.fillRect(0,-7.5, 100, 15);
     CTX.restore();
   }
 
