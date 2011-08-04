@@ -23,8 +23,9 @@ window.onload = function(){
   var MOUSE_Y   = 0     ;
   var MOUSE_DWN = false ;
 
-  var cDRAG     = 3  ; //num of draggable objects
-  var oDRAG     = [] ;
+  var cDRAG = 3  ; //num of draggable objects
+  var oDRAG = [] ;
+  var oNODE = [] ;
 
   function documentMouseMoveHandler(event) {
     MOUSE_X = event.clientX - CANVAS_X; 
@@ -52,38 +53,33 @@ window.onload = function(){
     }
   }
 
-  function Circle() {
+  function Node() {
     this.pos      = { x: 0, y: 0 }          ;
+    this.angle    = 0                       ;
     this.radius   = 10                      ;
+    this.length   = 70                      ;
     this.color    = 'rgba(222,222,222,1.0)' ;
     this.dragging = false                   ;
-
+    this.type     = 'Node'                  ;
     this.draw     = function(){
-      CTX.beginPath()                                                  ;
-      CTX.fillStyle = this.color                                       ;
-      CTX.arc(this.pos.x, this.pos.y, this.radius, 0, Math.PI*2, true) ;
-      CTX.fill()                                                       ;
+
+      if(this.type == 'Node'){
+        CTX.beginPath()                                ;
+        CTX.fillStyle = this.color                     ;
+        CTX.arc(0, 0, this.radius, 0, Math.PI*2, true) ;
+        CTX.fill()                                     ;
+      }
+      else if(this.type == 'Segment'){
+        var border    = this.radius * 0.5                                    ;
+        CTX.fillStyle = this.color                                           ;
+        CTX.fillRect(-(border),-(border), this.length + border, this.radius) ;
+      }
+      else{   //DEBUG : draw magenta square
+        CTX.fillStyle = '#F0F'                    ;
+        CTX.fillRect(0,0,this.radius,this.radius) ;
+      }
+
     }
-
-  }
-
-  function Segment(){
-    this.pos    = { x: 0, y: 0 }          ;
-    this.radius = 20                      ;
-    this.length = 70                      ;
-    this.color  = 'rgba(222,222,222,1.0)' ;
-
-    this.draw = function(){
-      var border    = this.radius * 0.5                                           ;
-      CTX.fillStyle = this.color                                                  ;
-      CTX.fillRect(-(border),-(border), this.length + (border*1.25), this.radius) ;
-      var circle    = new Circle()                                                ;
-      circle.radius = this.radius * 0.3                                           ;
-      circle.draw()                                                               ; //pin at origin
-      circle.pos.x = this.length - circle.radius                                  ;
-      circle.draw()                                                               ; //pin at end point
-    }
-
   }
 
   (function(){ 
@@ -92,11 +88,11 @@ window.onload = function(){
     document.addEventListener('mousedown' , documentMouseDownHandler , false ) ;
     document.addEventListener('mouseup'   , documentMouseUpHandler   , false ) ;
       // Init objects
-    var canvasWD       = CANVAS_W * 0.5;
-    var canvasHT       = CANVAS_H * 0.5;
+    var canvasWD = CANVAS_W * 0.5;
+    var canvasHT = CANVAS_H * 0.5;
 
     for(var i=0; i<cDRAG; i++){
-      var circle        = new Circle()                                                           ;
+      var circle        = new Node()                                                             ;
       var angle_r       = Math.random() * (Math.PI * 2.0)                                        ;
       var radius_r      = Math.random() * Math.min(canvasWD, canvasHT)*Math.min(1.0, 0.15*cDRAG) ;
           circle.pos.x  = Math.cos(angle_r) * radius_r + canvasWD                                ;
@@ -105,12 +101,21 @@ window.onload = function(){
       oDRAG.push(circle)                                                                         ;
     }
 
-    setInterval(update, 20);
+    var segment      = new Node() ;
+      segment.type   = 'Segment'  ;
+      segment.pos.x  = canvasWD   ;
+      segment.pos.y  = canvasHT   ;
+      segment.radius = 20         ;
+      segment.color  = '#555'     ;
+    oNODE.push(segment)           ;
+
+    setInterval(update, 20)       ;
 
   })();
 
   function update(){
       //clear canvas
+    CTX.setTransform(1,0,0,1,0,0)           ; //reset canvas
     CTX.fillStyle = 'rgba(122,122,122,1.0)' ;
     CTX.fillRect(0, 0, CANVAS_W, CANVAS_H)  ;
       //position and draw objects
@@ -122,38 +127,48 @@ window.onload = function(){
         oDRAG[i].pos.x = Math.max( Math.min( oDRAG[i].pos.x, CANVAS_W), 0 );
         oDRAG[i].pos.y = Math.max( Math.min( oDRAG[i].pos.y, CANVAS_H), 0 );
       }
-      oDRAG[i].draw();
+      CTX.setTransform(1,0,0,1,oDRAG[i].pos.x,oDRAG[i].pos.y) ;
+      oDRAG[i].draw()                                         ;
     }
-
-    var pos   = { x: 0, y: 0 } ;
-    pos.x     = CANVAS_W * 0.5 ;
-    pos.y     = CANVAS_H * 0.5 ;
-    drawRect(pos, '#F00')      ;
+      //Draw segment nodes
+    for(var i =0; i < oNODE.length; i++){
+      var n = oNODE[i];
+      if(MOUSE_DWN == true){
+        var dx  = MOUSE_X - (n.pos.x) ;
+        var dy  = MOUSE_Y - (n.pos.y) ;
+        n.angle = Math.atan2(dy, dx)  ;
+      }
+      CTX.setTransform(Math.cos(n.angle), Math.sin(n.angle), -Math.sin(n.angle), Math.cos(n.angle), n.pos.x, n.pos.y) ;
+      n.draw()                                                      ;
+        //Draw pins
+      var c = new Node()                                            ;
+        c.radius = n.radius * 0.3                                   ;
+        c.draw()                                                    ;
+        var ratio = n.length/(n.length + n.radius * 0.7) * n.length ;
+        c.pos.x   = n.pos.x + (Math.cos(n.angle) * ratio)           ;
+        c.pos.y   = n.pos.y + (Math.sin(n.angle) * ratio)           ;
+        CTX.setTransform(1,0,0,1,c.pos.x,c.pos.y)                   ;
+        c.draw()                                                    ;
+    }
   } 
 
-  function drawRect(pos, color){
+  function xform(draw, pos, angle){
     CTX.save();
     //CTX.setTransform(1,0,0,1,pos.x,pos.y); 
-    if(MOUSE_DWN == true){
-      CTX.fillStyle = color                       ;
-      var dx        = MOUSE_X - ( CANVAS_W * 0.5) ;
-      var dy        = MOUSE_Y - ( CANVAS_H * 0.5) ;
-      var angle     = Math.atan2(dy, dx)          ;
-      // translation matrix:
-      //  1  0  tx              
-      //  0  1  ty
-      //  0  0  1 
-      CTX.setTransform(Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), pos.x, pos.y) ;
-      CTX.save()                                                                                          ;
-      //circle.pos.x = (CANVAS_W * 0.5)+Math.cos(angle)*100                                               ;
-      //circle.pos.y = (CANVAS_H * 0.5)+Math.sin(angle)*100                                               ;
-      //CTX.setTransform(1,0,0,1,0,0)                                                                     ;
-      var segment   = new Segment()                                                                       ;
-      segment.color = '#F00'                                                                              ;
-      segment.draw()                                                                                      ;
-      CTX.restore()                                                                                       ;
-    }
-    CTX.restore();
+
+    /*
+    CTX.fillStyle = color                       ;
+    var dx        = MOUSE_X - ( CANVAS_W * 0.5) ;
+    var dy        = MOUSE_Y - ( CANVAS_H * 0.5) ;
+    var angle     = Math.atan2(dy, dx)          ;
+    */
+    // translation matrix:
+    //  1  0  tx              
+    //  0  1  ty
+    //  0  0  1 
+    //CTX.setTransform(1,0,0,1,0,0)                                                                     ; //reset canvas
+    CTX.setTransform(Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), pos.x, pos.y) ;
+    CTX.restore()                                                                                       ;
   }
 
   function distanceBetween(p1,p2) {
