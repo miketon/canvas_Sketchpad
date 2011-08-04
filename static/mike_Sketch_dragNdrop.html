@@ -4,53 +4,49 @@
     <script>
 window.onload = function(){
    
-  $                 = function(id)  { return document.getElementById(id) } ;
-  var dc            = function(tag) { return document.createElement(tag) } ;
+  $      = function(id)  { return document.getElementById(id) } ;
+  var dc = function(tag) { return document.createElement(tag) } ;
 
-  var canvas        = dc('canvas')            ;
-      canvas.id     = 'canvasMT'              ;
-  var CANVAS_W      = 320                     ;
-  var CANVAS_H      = 240                     ;
-      canvas.width  = CANVAS_W                ;
-      canvas.height = CANVAS_H                ;
-  var CTX           = canvas.getContext('2d') ;
-  document.body.appendChild(canvas)           ;
+  var MOUSE = { pos:{x:0, y:0}, dwn:false, sel:'node'   } ; //mouse state object
+  var C     = { canvas:'', w:320, h:240, x:0, y:0 }       ; //canvas object
 
-  var CANVAS_X = canvas.offsetLeft ; //delta from x.offsetParent (body)
-  var CANVAS_Y = canvas.offsetTop  ; //alt = e.offsetX (will tile?)
+  C.canvas        = dc('canvas')      ;
+  C.canvas.id     = 'canvasMT'        ;
+  C.canvas.width  = C.w               ;
+  C.canvas.height = C.h               ;
+  document.body.appendChild(C.canvas) ;
 
-  var MOUSE_X   = 0     ;
-  var MOUSE_Y   = 0     ;
-  var MOUSE_DWN = false ;
+  C.x = C.canvas.offsetLeft ; //delta from x.offsetParent (body)
+  C.y = C.canvas.offsetTop  ; //alt = e.offsetX (will tile?)
 
-  var cDRAG = 3  ; //num of draggable objects
-  var oDRAG = [] ;
-  var oNODE = [] ;
+  var nDRAG = 3  ; //num of draggable objects
+  var oDRAG = [] ; //collection of draggable objects
+  var oNODE = [] ; //collection of rotateable nodes
+  var CTX   = C.canvas.getContext('2d') ;
 
   function documentMouseMoveHandler(event) {
-    MOUSE_X = event.clientX - CANVAS_X; 
-    MOUSE_Y = event.clientY - CANVAS_Y;
+    MOUSE.pos.x = event.clientX - C.x; 
+    MOUSE.pos.y = event.clientY - C.y;
   }
 
   function documentMouseDownHandler(event) {
-    document.body.style.cursor = 'pointer' ;
-    MOUSE_DWN                  = true      ;
+    MOUSE.dwn = true;
     for(var i =0; i < oDRAG.length; i++){
-      if( distanceBetween( oDRAG[i].pos, { x: MOUSE_X, y: MOUSE_Y } ) < oDRAG[i].radius * 1.5) {
-        oDRAG[i].dragging = true                    ;
-        oDRAG[i].color    = 'rgba(255,255,222,1.0)' ;
-        break                                       ;
+      if( distanceBetween( oDRAG[i].pos, MOUSE.pos ) < oDRAG[i].radius * 1.5) {
+        MOUSE.sel          = oDRAG[i]                ;
+        MOUSE.sel.dragging = true                    ;
+        MOUSE.sel.color    = 'rgba(255,255,222,1.0)' ;
+        break                                        ;
       }
     }
+    document.body.style.cursor = 'pointer' ;
   }
   
   function documentMouseUpHandler(event) {
-    document.body.style.cursor = 'default' ;
-    MOUSE_DWN                  = false     ;
-    for(var i =0; i < oDRAG.length; i++){
-      oDRAG[i].dragging = false                   ;
-      oDRAG[i].color    = 'rgba(222,222,222,1.0)' ;
-    }
+    MOUSE.dwn                  = false                   ;
+    MOUSE.sel.dragging         = false                   ;
+    MOUSE.sel.color            = 'rgba(222,222,222,1.0)' ;
+    document.body.style.cursor = 'default'               ;
   }
 
   function Node() {
@@ -88,16 +84,16 @@ window.onload = function(){
     document.addEventListener('mousedown' , documentMouseDownHandler , false ) ;
     document.addEventListener('mouseup'   , documentMouseUpHandler   , false ) ;
       // Init objects
-    var canvasWD = CANVAS_W * 0.5;
-    var canvasHT = CANVAS_H * 0.5;
+    var canvasWD = C.w * 0.5;
+    var canvasHT = C.h * 0.5;
 
-    for(var i=0; i<cDRAG; i++){
+    for(var i=0; i<nDRAG; i++){
       var circle        = new Node()                                                             ;
       var angle_r       = Math.random() * (Math.PI * 2.0)                                        ;
-      var radius_r      = Math.random() * Math.min(canvasWD, canvasHT)*Math.min(1.0, 0.15*cDRAG) ;
+      var radius_r      = Math.random() * Math.min(canvasWD, canvasHT)*Math.min(1.0, 0.15*nDRAG) ;
           circle.pos.x  = Math.cos(angle_r) * radius_r + canvasWD                                ;
           circle.pos.y  = Math.sin(angle_r) * radius_r + canvasHT                                ;
-          circle.radius = Math.max(Math.random(), 1.0/cDRAG)*25                                  ;
+          circle.radius = Math.max(Math.random(), 1.0/nDRAG)*25                                  ;
       oDRAG.push(circle)                                                                         ;
     }
 
@@ -117,38 +113,40 @@ window.onload = function(){
       //clear canvas
     CTX.setTransform(1,0,0,1,0,0)           ; //reset canvas
     CTX.fillStyle = 'rgba(122,122,122,1.0)' ;
-    CTX.fillRect(0, 0, CANVAS_W, CANVAS_H)  ;
+    CTX.fillRect(0, 0, C.w, C.h)            ;
+
       //position and draw objects
     for(var i =0; i < oDRAG.length; i++){
       if( oDRAG[i].dragging ) {
-        oDRAG[i].pos.x += ( MOUSE_X - oDRAG[i].pos.x ) * 0.2;
-        oDRAG[i].pos.y += ( MOUSE_Y - oDRAG[i].pos.y ) * 0.2;
+        oDRAG[i].pos.x += ( MOUSE.pos.x - oDRAG[i].pos.x ) * 0.2;
+        oDRAG[i].pos.y += ( MOUSE.pos.y - oDRAG[i].pos.y ) * 0.2;
           //prevent out of bounds
-        oDRAG[i].pos.x = Math.max( Math.min( oDRAG[i].pos.x, CANVAS_W), 0 );
-        oDRAG[i].pos.y = Math.max( Math.min( oDRAG[i].pos.y, CANVAS_H), 0 );
+        oDRAG[i].pos.x = Math.max( Math.min( oDRAG[i].pos.x, C.w), 0 );
+        oDRAG[i].pos.y = Math.max( Math.min( oDRAG[i].pos.y, C.h), 0 );
       }
       CTX.setTransform(1,0,0,1,oDRAG[i].pos.x,oDRAG[i].pos.y) ;
       oDRAG[i].draw()                                         ;
     }
+
       //Draw segment nodes
     for(var i =0; i < oNODE.length; i++){
-      var n = oNODE[i];
-      if(MOUSE_DWN == true){
-        var dx  = MOUSE_X - (n.pos.x) ;
-        var dy  = MOUSE_Y - (n.pos.y) ;
-        n.angle = Math.atan2(dy, dx)  ;
+      var seg = oNODE[i];
+      if(MOUSE.dwn == true){
+        var dx    = MOUSE.pos.x - (seg.pos.x) ;
+        var dy    = MOUSE.pos.y - (seg.pos.y) ;
+        seg.angle = Math.atan2(dy, dx)        ;
       }
-      CTX.setTransform(Math.cos(n.angle), Math.sin(n.angle), -Math.sin(n.angle), Math.cos(n.angle), n.pos.x, n.pos.y) ;
-      n.draw()                                                      ;
+      CTX.setTransform(Math.cos(seg.angle), Math.sin(seg.angle), -Math.sin(seg.angle), Math.cos(seg.angle), seg.pos.x, seg.pos.y) ;
+      seg.draw()                                                             ;
         //Draw pins
-      var c = new Node()                                            ;
-        c.radius = n.radius * 0.3                                   ;
-        c.draw()                                                    ;
-        var ratio = n.length/(n.length + n.radius * 0.7) * n.length ;
-        c.pos.x   = n.pos.x + (Math.cos(n.angle) * ratio)           ;
-        c.pos.y   = n.pos.y + (Math.sin(n.angle) * ratio)           ;
-        CTX.setTransform(1,0,0,1,c.pos.x,c.pos.y)                   ;
-        c.draw()                                                    ;
+      var pin      = new Node()                                              ;
+      var ratio    = seg.length/(seg.length + seg.radius * 0.7) * seg.length ;
+        pin.radius = seg.radius * 0.3                                        ;
+        pin.draw()                                                           ;
+        pin.pos.x = seg.pos.x + (Math.cos(seg.angle) * ratio)                ;
+        pin.pos.y = seg.pos.y + (Math.sin(seg.angle) * ratio)                ;
+        CTX.setTransform(1,0,0,1,pin.pos.x,pin.pos.y)                        ;
+        pin.draw()                                                           ;
     }
   } 
 
@@ -157,10 +155,10 @@ window.onload = function(){
     //CTX.setTransform(1,0,0,1,pos.x,pos.y); 
 
     /*
-    CTX.fillStyle = color                       ;
-    var dx        = MOUSE_X - ( CANVAS_W * 0.5) ;
-    var dy        = MOUSE_Y - ( CANVAS_H * 0.5) ;
-    var angle     = Math.atan2(dy, dx)          ;
+    CTX.fillStyle = color                      ;
+    var dx        = MOUSE.pos.x - ( C.w * 0.5) ;
+    var dy        = MOUSE.pos.y - ( C.h * 0.5) ;
+    var angle     = Math.atan2(dy, dx)         ;
     */
     // translation matrix:
     //  1  0  tx              
