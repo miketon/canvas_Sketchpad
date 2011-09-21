@@ -27,6 +27,17 @@
 			</canvas>
 			<div class = "hd"><p>(MOVE:arrow key | JUMP:spacebar) </p></div>
 		</div>
+    <div id="cse" style="width: 100%;">Loading</div>
+    <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+    <script type="text/javascript"> 
+      google.load('search', '1', {language : 'en'});
+      google.setOnLoadCallback(function() {
+        var customSearchControl = new google.search.CustomSearchControl('006260085217365216815:nyfk94pk6kc');
+        customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+        customSearchControl.draw('cse');
+      }, true);
+    </script>
+    <link rel="stylesheet" href="http://www.google.com/cse/style/look/default.css" type="text/css" />
 	 </body>
 	 
 	 <!embed src="sound/hazy_shade_of_winter.mid" width="320" height="240" autoplay="true" hidden="false" loop="true" volume="50"><!/embed>
