@@ -8,7 +8,7 @@ window.onload = function(){
   var dc = function(tag) { return document.createElement(tag) } ;
 
   var MOUSE = { x:0, y:0, dwn:false, sel:'node'   } ; //mouse state object
-  var C     = { canvas:'', w:320, h:240, x:0, y:0 }       ; //canvas object
+  var C     = { canvas:'', w:320, h:240, x:0, y:0 } ; //canvas object
 
   C.canvas        = dc('canvas')      ;
   C.canvas.id     = 'canvasMT'        ;
@@ -19,10 +19,9 @@ window.onload = function(){
   C.x = C.canvas.offsetLeft ; //delta from x.offsetParent (body)
   C.y = C.canvas.offsetTop  ; //alt = e.offsetX (will tile?)
 
-  var nDRAG = 3  ; //num of draggable objects
+  var nDRAG = 2  ; //num of draggable objects
   var oDRAG = [] ; //collection of draggable objects
   var oNODE = [] ; //collection of rotateable nodes
-  var o_I_K = [] ; //ik chain
   var CTX   = C.canvas.getContext('2d') ;
 
   function documentMouseMoveHandler(event) {
@@ -51,7 +50,6 @@ window.onload = function(){
   }
 
   function Node() {
-
     this.type     = 'Node'                  ;
     this.dragging = false                   ;
     this.angle    = 0                       ;
@@ -93,17 +91,16 @@ window.onload = function(){
       CTX.fillText(this.text, -(this.length*0.4),-(this.radius*0.3))            ;
     }
 
-    this.draw     = function(){
-      this.xform();
+    this.draw = function(){
+      this.xform()               ;
       CTX.fillStyle = this.color ;
       if(this.type == 'Node'){
         this.circle(this.radius);
       }
       else if(this.type == 'Segment'){
-        var border    = this.radius * 0.5                                        ;
+        var border = this.radius * 0.5                                           ;
         CTX.fillRect(-(border),-(border), this.length +(2* border), this.radius) ;
           //draw pin
-
         this.circle(this.radius * 0.3, 'rgba(222,222,222,1.0)') ;
         var end = this.getpin()                                 ;
         CTX.setTransform(1,0,0,1,end.x,end.y)                   ;
@@ -122,8 +119,8 @@ window.onload = function(){
     document.addEventListener('mousedown' , documentMouseDownHandler , false ) ;
     document.addEventListener('mouseup'   , documentMouseUpHandler   , false ) ;
       // Init objects
-    var canvasWD = C.w * 0.5;
-    var canvasHT = C.h * 0.5;
+    var canvasWD = C.w * 0.5 ;
+    var canvasHT = C.h * 0.5 ;
 
     for(var i=0; i<nDRAG; i++){
       var circle        = new Node()                                                             ;
@@ -136,23 +133,19 @@ window.onload = function(){
           circle.length = 55                                                                     ;
       oDRAG.push(circle)                                                                         ;
     }
-
-    var segment      = new Node() ;
-      segment.type   = 'Segment'  ;
-      segment.x      = canvasWD   ;
-      segment.y      = canvasHT   ;
-      segment.radius = 20         ;
-      segment.color  = '#555'     ;
-    oNODE.push(segment)           ;
-    o_I_K.push(segment)           ;
-
-      segment       = new Node() ;
+      //generate segments
+    for(var i=0; i<3; i++){
+      var segment   = new Node() ;
       segment.type  = 'Segment'  ;
       segment.color = '#555'     ;
-    oNODE.push(segment)          ;
-    o_I_K.push(segment)          ;
+      oNODE.push(segment)        ;
+    }
+      oNODE[2].x      = canvasWD ;
+      oNODE[2].y      = canvasHT ;
+      oNODE[2].length = 85       ;
+      oNODE[2].radius = 5        ;
 
-    setInterval(update, 20)       ;
+    setInterval(update, 20)      ;
 
   })();
 
@@ -161,7 +154,6 @@ window.onload = function(){
     CTX.setTransform(1,0,0,1,0,0)           ; //reset canvas
     CTX.fillStyle = 'rgba(122,122,122,1.0)' ;
     CTX.fillRect(0, 0, C.w, C.h)            ;
-
       //position and draw objects
     for(var i =0, len = oDRAG.length; i < len; i++){
       if( oDRAG[i].dragging ) {
@@ -180,18 +172,40 @@ window.onload = function(){
     }
 
     //Draw segment nodes
-    var posx = MOUSE.x;
-    var posy = MOUSE.y;
-    for(var i =0, len = oNODE.length; i < len; i++){
-      var seg = oNODE[i];
-      if(MOUSE.dwn == true){
-        var dx    = MOUSE.x - (seg.x)  ;
-        var dy    = MOUSE.y - (seg.y)  ;
-        seg.angle = Math.atan2(dy, dx) ;
-      }
-      seg.draw() ;
-    }
+    oNODE[0].x = oDRAG[0].x                ;
+    oNODE[0].y = oDRAG[0].y                ;
+    ik_Solve(oNODE[0], oNODE[1], oDRAG[1]) ;
+
+    point_To_Mouse(oNODE[2])               ;
   } 
+
+  function ik_Solve(ik_0, ik_1, target){
+    var dx     = target.x - ik_0.x                 ;
+    var dy     = target.y - ik_0.y                 ;
+    var dist   = Math.sqrt(dx *dx + dy* dy)        ;
+    var a      = ik_0.length                       ;
+    var b      = ik_1.length                       ;
+    var c      = Math.min(dist, a + b)             ;
+    var B      = Math.acos((b*b-a*a-c*c)/(-2*a*c)) ;
+    var C      = Math.acos((c*c-a*a-b*b)/(-2*a*b)) ;
+    var D      = Math.atan2(dy, dx)                ;
+    ik_0.angle = D + B                             ;
+    ik_0.draw()                                    ;
+    var end    = ik_0.getpin()                     ;
+    ik_1.x     = end.x                             ;
+    ik_1.y     = end.y                             ;
+    ik_1.angle = D + B + Math.PI + C               ;
+    ik_1.draw()                                    ;
+  }
+
+  function point_To_Mouse(seg){
+    if(MOUSE.dwn == true){
+      var dx    = MOUSE.x - (seg.x)  ;
+      var dy    = MOUSE.y - (seg.y)  ;
+      seg.angle = Math.atan2(dy, dx) ;
+    }
+    seg.draw() ;
+  }
 
   function distanceBetween(x1,x2,y1,y2) {
     var dx = x1-x2                  ;
