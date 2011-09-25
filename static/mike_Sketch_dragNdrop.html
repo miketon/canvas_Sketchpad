@@ -7,8 +7,8 @@ window.onload = function(){
   $      = function(id)  { return document.getElementById(id) } ;
   var dc = function(tag) { return document.createElement(tag) } ;
 
-  var MOUSE = { x:0, y:0, dwn:false, sel:'node'   } ; //mouse state object
-  var C     = { canvas:'', w:320, h:240, x:0, y:0 } ; //canvas object
+  var MOUSE = { x:0, y:0, dwn:false, mov:false, sel:false, time:0 } ; //mouse state object
+  var C     = { canvas:'', w:320, h:240, x:0, y:0                 } ; //canvas object
 
   C.canvas        = dc('canvas')      ;
   C.canvas.id     = 'canvasMT'        ;
@@ -25,12 +25,14 @@ window.onload = function(){
   var CTX   = C.canvas.getContext('2d') ;
 
   function documentMouseMoveHandler(event) {
-    MOUSE.x = event.clientX - C.x; 
-    MOUSE.y = event.clientY - C.y;
+    MOUSE.mov = true                ;
+    MOUSE.x   = event.clientX - C.x ;
+    MOUSE.y   = event.clientY - C.y ;
   }
 
   function documentMouseDownHandler(event) {
-    MOUSE.dwn = true;
+    MOUSE.dwn = true  ;
+    MOUSE.mov = false ;
     for(var i =0, len = oDRAG.length; i < len; i++){
       if( distanceBetween( oDRAG[i].x, MOUSE.x, oDRAG[i].y, MOUSE.y) < oDRAG[i].radius * 1.5) {
         MOUSE.sel          = oDRAG[i]                ;
@@ -44,8 +46,10 @@ window.onload = function(){
   
   function documentMouseUpHandler(event) {
     MOUSE.dwn                  = false                   ;
+    MOUSE.time                 = 0                       ;
     MOUSE.sel.dragging         = false                   ;
     MOUSE.sel.color            = 'rgba(222,222,222,1.0)' ;
+    MOUSE.sel                  = false                   ;
     document.body.style.cursor = 'default'               ;
   }
 
@@ -157,14 +161,14 @@ window.onload = function(){
       //position and draw objects
     for(var i =0, len = oDRAG.length; i < len; i++){
       if( oDRAG[i].dragging ) {
-        oDRAG[i].x += ( MOUSE.x - oDRAG[i].x ) * 0.2;
-        oDRAG[i].y += ( MOUSE.y - oDRAG[i].y ) * 0.2;
+        oDRAG[i].x += ( MOUSE.x - oDRAG[i].x ) * 0.2 ;
+        oDRAG[i].y += ( MOUSE.y - oDRAG[i].y ) * 0.2 ;
           //prevent out of bounds
-        oDRAG[i].x = Math.max( Math.min( oDRAG[i].x, C.w), 0 );
-        oDRAG[i].y = Math.max( Math.min( oDRAG[i].y, C.h), 0 );
+        oDRAG[i].x = Math.max( Math.min( oDRAG[i].x, C.w), 0 ) ;
+        oDRAG[i].y = Math.max( Math.min( oDRAG[i].y, C.h), 0 ) ;
       }
       CTX.setTransform(1,0,0,1,oDRAG[i].x,oDRAG[i].y) ;
-      oDRAG[i].draw()                                         ;
+      oDRAG[i].draw()                                 ;
       if( oDRAG[i].dragging ) {
         CTX.setTransform(1,0,0,1,oDRAG[i].x,oDRAG[i].y-oDRAG[i].radius) ;
         oDRAG[i].menu()                                                 ;
@@ -176,7 +180,13 @@ window.onload = function(){
     oNODE[0].y = oDRAG[0].y                ;
     ik_Solve(oNODE[0], oNODE[1], oDRAG[1]) ;
 
-    point_To_Mouse(oNODE[2])               ;
+    if(MOUSE.dwn == true){
+      point_To_Mouse(oNODE[2])  ;
+      if(MOUSE.mov == false){
+        MOUSE.time++; 
+      }
+      debugPrint('Hello World '+ MOUSE.time +' '+ MOUSE.mov +' '+ MOUSE.sel.type) ;
+    }
   } 
 
   function ik_Solve(ik_0, ik_1, target){
@@ -199,12 +209,10 @@ window.onload = function(){
   }
 
   function point_To_Mouse(seg){
-    if(MOUSE.dwn == true){
-      var dx    = MOUSE.x - (seg.x)  ;
-      var dy    = MOUSE.y - (seg.y)  ;
-      seg.angle = Math.atan2(dy, dx) ;
-    }
-    seg.draw() ;
+    var dx    = MOUSE.x - (seg.x)  ;
+    var dy    = MOUSE.y - (seg.y)  ;
+    seg.angle = Math.atan2(dy, dx) ;
+    seg.draw()                     ;
   }
 
   function distanceBetween(x1,x2,y1,y2) {
@@ -213,6 +221,17 @@ window.onload = function(){
     return Math.sqrt(dx*dx + dy*dy) ;
   }
 
+  function debugPrint(text){
+    CTX.setTransform(1,0,0,1,10,20)  ; //reset canvas
+    CTX.fillStyle = '#DDD'           ;
+    CTX.font      = '10pt Helvetica' ;
+    if(MOUSE.time < 45){
+      CTX.fillText(text, 0, 0)              ;
+    }
+    else{
+      CTX.fillText('Menu Triggered!', 0, 0) ;
+    }
+  }
 }
  </script>
   </head>
