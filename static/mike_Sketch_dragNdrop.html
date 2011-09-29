@@ -91,11 +91,14 @@ window.onload = function(){
     }
 
     this.menu = function(){
-      CTX.fillStyle = '#88D'                                                    ;
-      CTX.fillRect(-(this.length*0.5),-(this.radius), this.length, this.radius) ;
-      CTX.fillStyle = this.color                                                ;
-      CTX.font      = '10pt Helvetica'                                          ;
-      CTX.fillText(this.text, -(this.length*0.4),-(this.radius*0.3))            ;
+      CTX.font       = '10pt Helvetica'                                                                 ;
+      var widthText  = CTX.measureText(this.text).width                                                 ;
+      var heightText = CTX.measureText("W").width                                                       ;
+      var margin     = 1.25 * heightText                                                                ;
+      CTX.fillStyle  = '#88D'                                                                           ;
+      CTX.fillRect(-(widthText+margin)*0.5,-(heightText*2.0)*1.1, (widthText+margin), (heightText*1.7)) ;
+      CTX.fillStyle = this.color                                                                        ;
+      CTX.fillText(this.text, -(widthText*0.5),-(heightText))                                           ;
     }
 
     this.draw = function(){
@@ -230,7 +233,7 @@ window.onload = function(){
     var dy    = MOUSE.y - (seg.y)  ;
     seg.angle = Math.atan2(dy, dx) ;
     seg.draw()                     ;
-    debugPrint(seg.angle.toFixed(2));
+    debugPrint(seg.angle.toFixed(2)+' : '+(seg.angle *180/Math.PI).toFixed(2));
   }
 
   function distanceBetween(x1,x2,y1,y2) {
