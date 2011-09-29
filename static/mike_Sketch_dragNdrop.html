@@ -138,7 +138,7 @@ window.onload = function(){
       var radius_r      = Math.random() * Math.min(canvasWD, canvasHT)*Math.min(1.0, 0.15*nDRAG) ;
           circle.x      = Math.cos(angle_r) * radius_r + canvasWD                                ;
           circle.y      = Math.sin(angle_r) * radius_r + canvasHT                                ;
-          circle.radius = Math.max(Math.random(), 1.0/nDRAG)*25                                  ;
+          circle.radius = 12; //Math.max(Math.random(), 1.0/nDRAG)*25                                  ;
           circle.text   = 'dragME'                                                               ;
           circle.length = 55                                                                     ;
       oDRAG.push(circle)                                                                         ;
@@ -193,13 +193,13 @@ window.onload = function(){
       ik_Solve(oNODE[0], oNODE[1], oDRAG[1]) ;
 
       if(MOUSE.dwn == true){
-        if(MOUSE.mov == false){
+        if(MOUSE.mov == false && MOUSE.sel != false){
           MENU.time++; 
           if(MENU.time > MENU.dur){
-            debugPrint('Menu!')   ;
-            MENU.active = true    ;
-            MENU.x      = MOUSE.x ;
-            MENU.y      = MOUSE.y ;
+            debugPrint('Menu!')       ;
+            MENU.active = true        ;
+            MENU.x      = MOUSE.sel.x ;
+            MENU.y      = MOUSE.sel.y ;
           }
           else{
             debugPrint('time : ' + MENU.time); //('Hello World '+ MENU.time +' '+ MOUSE.mov +' '+ MOUSE.sel.type +' menu: '+ MENU.active) ;
