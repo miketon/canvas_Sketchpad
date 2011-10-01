@@ -7,9 +7,10 @@ window.onload = function(){
   $      = function(id)  { return document.getElementById(id) } ;
   var dc = function(tag) { return document.createElement(tag) } ;
 
-  var MOUSE = { x:0, y:0, dwn:false, mov:false, sel:false         } ; //mouse state object
   var C     = { canvas:'', w:320, h:240, x:0, y:0                 } ; //canvas object
+  var MOUSE = { x:0, y:0, dwn:false, mov:false, sel:false         } ; //mouse state object
   var MENU  = { x:0, y:0, active:false, time:0, dur:20, radius:30 } ;
+  var DEBUG = { toggle:true                                       } ;
 
   C.canvas        = dc('canvas')      ;
   C.canvas.id     = 'canvasMT'        ;
@@ -20,9 +21,10 @@ window.onload = function(){
   C.x = C.canvas.offsetLeft ; //delta from x.offsetParent (body)
   C.y = C.canvas.offsetTop  ; //alt = e.offsetX (will tile?)
 
-  var nDRAG = 2  ; //num of draggable objects
-  var oDRAG = [] ; //collection of draggable objects
-  var oNODE = [] ; //collection of rotateable nodes
+  var nDRAG = 2                         ; //num of draggable objects
+  var oDRAG = []                        ; //collection of draggable objects
+  var oNODE = []                        ; //collection of rotateable nodes
+  var oMENU = []                        ;
   var CTX   = C.canvas.getContext('2d') ;
 
   function documentMouseMoveHandler(event) {
@@ -46,7 +48,9 @@ window.onload = function(){
   }
   
   function documentMouseUpHandler(event) {
-    MENU.active                = false                   ;
+    if(MENU.active == true){
+      MENU.active = false ;
+    }
     MENU.time                  = 0                       ;
     MOUSE.dwn                  = false                   ;
     MOUSE.sel.dragging         = false                   ;
@@ -160,6 +164,20 @@ window.onload = function(){
 
   })();
 
+  function menu_Active(num){
+    var arc = 2*Math.PI/num ;
+    for(var i=0; i<num; i++){
+      var circle    = new Node()                                        ;
+      circle.angle  = arc * i                                           ;
+      circle.length = 40                                                ;
+      circle.text   = 'menu'                                            ;
+      circle.x      = MENU.x + (Math.cos(circle.angle) * circle.length) ;
+      circle.y      = MENU.y + (Math.sin(circle.angle) * circle.length) ;
+      circle.draw()                                                     ;
+      oMENU.push(circle)                                                ;
+   }
+  }
+
   function update(){
     if(MENU.active == true){
       clearCanvas()                 ;
@@ -167,6 +185,7 @@ window.onload = function(){
       oNODE[2].y      = MENU.y      ;
       oNODE[2].length = MENU.radius ;
       point_To_Mouse(oNODE[2])      ;
+      menu_Active(3);
     }
     else{
       clearCanvas() ;
@@ -188,18 +207,25 @@ window.onload = function(){
       }
 
       //Draw segment nodes
-      oNODE[0].x = oDRAG[0].x                ;
-      oNODE[0].y = oDRAG[0].y                ;
-      ik_Solve(oNODE[0], oNODE[1], oDRAG[1]) ;
-
+      if(DEBUG.toggle==true){
+        oNODE[0].x = oDRAG[0].x                ;
+        oNODE[0].y = oDRAG[0].y                ;
+        ik_Solve(oNODE[0], oNODE[1], oDRAG[1]) ;
+      }
+      else{
+        oNODE[1].x = oDRAG[1].x                ;
+        oNODE[1].y = oDRAG[1].y                ;
+        ik_Solve(oNODE[1], oNODE[0], oDRAG[0]) ;
+      }
       if(MOUSE.dwn == true){
         if(MOUSE.mov == false && MOUSE.sel != false){
           MENU.time++; 
           if(MENU.time > MENU.dur){
-            debugPrint('Menu!')       ;
-            MENU.active = true        ;
-            MENU.x      = MOUSE.sel.x ;
-            MENU.y      = MOUSE.sel.y ;
+            MENU.active  = true                 ;
+            MENU.x       = MOUSE.sel.x          ;
+            MENU.y       = MOUSE.sel.y          ;
+            DEBUG.toggle = toggle(DEBUG.toggle) ;
+            // debugPrint('Menu!'+DEBUG.toggle)    ;
           }
           else{
             debugPrint('time : ' + MENU.time); //('Hello World '+ MENU.time +' '+ MOUSE.mov +' '+ MOUSE.sel.type +' menu: '+ MENU.active) ;
@@ -255,6 +281,19 @@ window.onload = function(){
     CTX.fillStyle = 'rgba(122,122,122,1.0)' ;
     CTX.fillRect(0, 0, C.w, C.h)            ;
   }
+
+  function toggle(nBool){
+    if(nBool==true){
+      return false;
+    }
+    else if(nBool==false){
+      return true;
+    }
+    else{
+      return true;
+    }
+  }
+
 }
  </script>
   </head>
