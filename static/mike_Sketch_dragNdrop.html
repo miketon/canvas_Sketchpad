@@ -24,6 +24,7 @@ window.onload = function(){
   var nDRAG = 2                         ; //num of draggable objects
   var oDRAG = []                        ; //collection of draggable objects
   var oNODE = []                        ; //collection of rotateable nodes
+  var STICK = []                        ;
   var oMENU = []                        ;
   var CTX   = C.canvas.getContext('2d') ;
 
@@ -57,6 +58,37 @@ window.onload = function(){
     MOUSE.sel.color            = 'rgba(222,222,222,1.0)' ;
     MOUSE.sel                  = false                   ;
     document.body.style.cursor = 'default'               ;
+  }
+
+  function Chain(){
+    this.name   = 'bone' ;
+    this.Bone   = []     ;
+    this.fk     = 0      ; //0  = fk 1 = ik
+    this.num    = 2      ;
+    this.length = 70     ;
+
+    this.init = function(){
+      for(var i=0; i<this.num; i++){
+        var bone    = new Node()  ;
+        bone.type   = 'Segment'   ;
+        bone.length = this.length ;
+        this.Bone.push(bone)      ;
+        var drag = new Node()     ;
+        oDRAG.push(drag)          ;
+      }  
+    }
+    this.xform = function(){
+      point_To_Mouse(this.Bone[0])           ;
+      var end        = this.Bone[0].getpin() ;
+      this.Bone[1].x = end.x                 ;
+      this.Bone[1].y = end.y                 ;
+    }
+    this.draw = function(){
+      this.xform();
+      for(var i=0; i<this.Bone.length; i++){
+        this.Bone[i].draw();
+      }
+    }
   }
 
   function Node() {
@@ -160,6 +192,11 @@ window.onload = function(){
       oNODE[2].length = 85       ;
       oNODE[2].radius = 5        ;
 
+      //generate fk segments
+      var fkChain = new Chain(); 
+      fkChain.init();
+      STICK.push(fkChain);
+
     setInterval(update, 20)      ;
 
   })();
@@ -217,6 +254,10 @@ window.onload = function(){
         oNODE[1].y = oDRAG[1].y                ;
         ik_Solve(oNODE[1], oNODE[0], oDRAG[0]) ;
       }
+
+      //draw fk
+      STICK[0].draw();
+
       if(MOUSE.dwn == true){
         if(MOUSE.mov == false && MOUSE.sel != false){
           MENU.time++; 
