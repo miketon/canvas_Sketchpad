@@ -3,20 +3,39 @@
     <title>Test Suite</title>
     <script>
   //Test Suite here
-function assert(value, desc){
-  var li = document.createElement('li');
-  li.className = value ? 'pass' : 'fail';
-  li.appendChild(document.createTextNode(desc));
-  document.getElementById('results').appendChild(li);
-}
+  function assert(value, desc){
+    var li = document.createElement('li');
+    li.className = value ? 'pass' : 'fail';
+    li.appendChild(document.createTextNode(desc));
+    document.getElementById('results').appendChild(li);
+  }
 
-window.onload = function(){
-  assert(true, 'The test suite is running.');
-  assert(false, 'Fail!'); 
+  window.onload = function(){
+    assert(true, 'The test suite is running.');
+    assert(false, 'Fail!'); 
+    
+    assert(log('This logging will work across browsers.', "Including opera.",  3+3), 'Logging works.');
 
     //Regular Expression here
-  var re = /test/i;
-}
+    var re = /test/i;
+  }
+
+  //Crossbrowser logging 
+  function log(){
+    try{                                     // tries to log using most common method
+      console.log.apply(console, arguments); // using apply() methods of Javascript function to relay arguments
+      return true;                           // passed to our function to the logging function
+    }
+    catch(e){ //catches failure
+      try{    //tries to log the opera way
+        opera.postError.apply(opera, arguments);
+        return true;
+      }
+      catch(e){ //uses an alert if all else fails
+        alert(Array.prototype.join.call(arguments, ""));
+      }
+    }
+  }
     </script>
     <style>
       #results li.pass {color:green;}
